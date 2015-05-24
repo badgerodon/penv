@@ -7,24 +7,16 @@
 
 ## Installation
 `penv` is both a library and a command. To use the library in your own code see
-(godoc.org/github.com/badgerodon/penv). For the command:
+[the documentation](https://godoc.org/github.com/badgerodon/penv).
+To install the command run:
 
     go get github.com/badgerodon/penv/...
 
-This creates a `penv` command. Here's its usage:
+Here's its usage:
 
-    usage: penv [<flags>] <command> [<args> ...]
-
-    Permanently set/unset environment variables
-
-    Flags:
-      --help     Show help.
-      --version  Show application version.
+    penv <command>
 
     Commands:
-      help [<command>...]
-        Show help.
-
       set <name> <value>
         Permanently NAME to VALUE in the environment
 
@@ -33,6 +25,11 @@ This creates a `penv` command. Here's its usage:
 
       append <name> <value>
         Permanently append VALUE to NAME in the environment
+
+## Gotchas
+Different operating systems / shells aren't really compatible. I'm able to discern which environment variables I'm responsible for with shells (like bash) by using their config files, but I can't do that with Windows or OSX. All appends will get collapsed into sets, and unsets aren't just masking the value, they may actually remove it.
+
+In other words this command works but it's dangerous. If you set your `PATH` don't be surprised when it clears all the previous values and you can't get them back.
 
 ## License
 MIT
