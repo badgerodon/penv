@@ -111,7 +111,19 @@ func (dao *WindowsDAO) Save(env *Environment) error {
 	}
 
 	// set
+set_loop:
 	for _, nv := range env.Setters {
+		for _, name := range names {
+			if strings.ToUpper(name) == strings.ToUpper(nv.Name) {
+				value, _, err := key.GetStringValue(name)
+				if err != nil {
+					return err
+				}
+				if value == nv.Value {
+					continue set_loop
+				}
+			}
+		}
 		err = key.SetStringValue(nv.Name, nv.Value)
 		if err != nil {
 			return err
