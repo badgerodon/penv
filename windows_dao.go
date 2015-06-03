@@ -3,12 +3,42 @@
 package penv
 
 import (
-	"log"
 	"runtime"
 	"strings"
+	"syscall"
+	"unsafe"
+
+	"github.com/lxn/win"
 
 	"golang.org/x/sys/windows/registry"
 )
+
+const (
+	SMTO_BLOCK uint32 = 0x0001
+)
+
+var (
+	libuser32              *syscall.DLL
+	sendMessageTimeoutAddr *syscall.Proc
+)
+
+func init() {
+	libuser32 = syscall.MustLoadDLL("user32.dll")
+	sendMessageTimeoutAddr = libuser32.MustFindProc("SendMessageTimeoutW")
+}
+
+func sendMessageTimeout(hWnd win.HWND, msg uint32, wParam, lParam uintptr, fuFlags, uTimeout uint32, lpdwResult uintptr) uintptr {
+	r1, _, _ := sendMessageTimeoutAddr.Call(
+		uintptr(hWnd),
+		uintptr(msg),
+		wParam,
+		lParam,
+		uintptr(fuFlags),
+		uintptr(uTimeout),
+		lpdwResult)
+
+	return r1
+}
 
 // WindowsDAO is the data access object for windows
 type WindowsDAO struct {
@@ -73,9 +103,12 @@ func (dao *WindowsDAO) Save(env *Environment) error {
 		return err
 	}
 
-	log.Println(names)
-	log.Println("SETTERS", env.Setters)
-	log.Println("APPENDERS", env.Appenders)
+	for i := range env.Setters {
+		env.Setters[i].Value = strings.Replace(env.Setters[i].Value, "/", "\\", -1)
+	}
+	for i := range env.Appenders {
+		env.Appenders[i].Value = strings.Replace(env.Appenders[i].Value, "/", "\\", -1)
+	}
 
 	// set
 	for _, nv := range env.Setters {
@@ -86,6 +119,7 @@ func (dao *WindowsDAO) Save(env *Environment) error {
 	}
 
 	// append
+append_loop:
 	for _, nv := range env.Appenders {
 		values := []string{}
 		for _, name := range names {
@@ -95,10 +129,15 @@ func (dao *WindowsDAO) Save(env *Environment) error {
 					return err
 				}
 				values = append(values, strings.Split(value, ";")...)
+				values = uniquei(append(values, nv.Value))
+				err = key.SetStringValue(nv.Name, strings.Join(values, ";"))
+				if err != nil {
+					return err
+				}
+				break append_loop
 			}
 		}
-		values = uniquei(append(values, nv.Value))
-		err = key.SetStringValue(nv.Name, strings.Join(values, ";"))
+		err = key.SetStringValue(nv.Name, nv.Value)
 		if err != nil {
 			return err
 		}
@@ -115,6 +154,10 @@ func (dao *WindowsDAO) Save(env *Environment) error {
 			}
 		}
 	}
+
+	str := "Environment"
+	pstr, _ := syscall.UTF16PtrFromString(str)
+	sendMessageTimeout(win.HWND_BROADCAST, win.WM_WININICHANGE, 0, uintptr(unsafe.Pointer(pstr)), SMTO_BLOCK, 5000, 0)
 
 	return nil
 }
