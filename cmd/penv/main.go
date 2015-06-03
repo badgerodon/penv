@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/golang-book/penv"
+	"github.com/badgerodon/penv"
 
 	"gopkg.in/alecthomas/kingpin.v2"
 )
