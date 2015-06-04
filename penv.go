@@ -102,7 +102,7 @@ func Save(env *Environment) error {
 func AppendEnv(name, value string) error {
 	env, err := Load()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load environment: %v", err)
 	}
 	env.Setters = filter(env.Setters, func(nv NameValue) bool {
 		return nv.Name != name || nv.Value != value
@@ -115,40 +115,53 @@ func AppendEnv(name, value string) error {
 	env.Unsetters = filter(env.Unsetters, func(nv NameValue) bool {
 		return nv.Name != name
 	})
-	return Save(env)
+	err = Save(env)
+	if err != nil {
+		return fmt.Errorf("failed to save environment: %v", err)
+	}
+	return nil
 }
 
 // SetEnv permanently sets an environment variable
 func SetEnv(name, value string) error {
-	defs, err := Load()
+	env, err := Load()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load environment: %v", err)
 	}
-	defs.Setters = filter(defs.Setters, func(nv NameValue) bool {
+	env.Setters = filter(env.Setters, func(nv NameValue) bool {
 		return nv.Name != name
 	})
-	defs.Setters = append(defs.Setters, NameValue{name, value})
-	defs.Unsetters = filter(defs.Unsetters, func(nv NameValue) bool {
+	env.Setters = append(env.Setters, NameValue{name, value})
+	env.Unsetters = filter(env.Unsetters, func(nv NameValue) bool {
 		return nv.Name != name
 	})
-	return Save(defs)
+	err = Save(env)
+	if err != nil {
+		return fmt.Errorf("failed to save environment: %v", err)
+	}
+	return nil
 }
 
 // UnsetEnv permanently unsets an environment variable
 func UnsetEnv(name string) error {
-	defs, err := Load()
+	env, err := Load()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load environment: %v", err)
 	}
-	defs.Setters = filter(defs.Setters, func(nv NameValue) bool {
+	env.Setters = filter(env.Setters, func(nv NameValue) bool {
 		return nv.Name != name
 	})
-	defs.Appenders = filter(defs.Appenders, func(nv NameValue) bool {
+	env.Appenders = filter(env.Appenders, func(nv NameValue) bool {
 		return nv.Name != name
 	})
-	defs.Unsetters = filter(defs.Unsetters, func(nv NameValue) bool {
+	env.Unsetters = filter(env.Unsetters, func(nv NameValue) bool {
 		return nv.Name != name
 	})
-	defs.Unsetters = append(defs.Unsetters, NameValue{name, ""})
-	return Save(defs)
+	env.Unsetters = append(env.Unsetters, NameValue{name, ""})
+
+	err = Save(env)
+	if err != nil {
+		return fmt.Errorf("failed to save environment: %v", err)
+	}
+	return nil
 }

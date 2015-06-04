@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/hex"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -65,7 +66,7 @@ func (sh *shell) Load() (*Environment, error) {
 
 	f, err := os.Open(sh.configFileName)
 	if err != nil {
-		return nil, err
+		return env, nil
 	}
 	defer f.Close()
 
@@ -99,16 +100,20 @@ func (sh *shell) Save(env *Environment) error {
 
 	// generate the new file
 	err := func() error {
+		fi, err := os.Stat(inName)
+		if err != nil {
+			ioutil.WriteFile(inName, []byte{}, 0755)
+			fi, err = os.Stat(inName)
+		}
+		if err != nil {
+			return err
+		}
+
 		in, err := os.Open(inName)
 		if err != nil {
 			return err
 		}
 		defer in.Close()
-
-		fi, err := in.Stat()
-		if err != nil {
-			return err
-		}
 
 		out, err := os.OpenFile(outName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, fi.Mode())
 		if err != nil {

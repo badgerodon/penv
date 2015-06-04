@@ -12,7 +12,7 @@ import (
 var (
 	bashShell = &shell{
 		configFileName: filepath.Join(os.Getenv("HOME"), ".bashrc"),
-		commentSigil:   "#",
+		commentSigil:   " #",
 		quote: func(value string) string {
 			r := strings.NewReplacer(
 				"\\", "\\\\",

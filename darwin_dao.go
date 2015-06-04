@@ -31,7 +31,7 @@ var (
 
 	darwinShell = &shell{
 		configFileName: filepath.Join(os.Getenv("HOME"), ".config", "penv.sh"),
-		commentSigil:   "#",
+		commentSigil:   " #",
 		quote: func(value string) string {
 			r := strings.NewReplacer(
 				"\\", "\\\\",
@@ -86,14 +86,12 @@ func (dao *DarwinDAO) Save(env *Environment) error {
 
 	plistName := filepath.Join(os.Getenv("HOME"), "Library", "LaunchAgents", "penv.plist")
 
-	_, err = ioutil.WriteFile(
-		plistName,
-		darwinPlist,
-	)
+	err = ioutil.WriteFile(plistName, []byte(darwinPlist), 0777)
 	if err != nil {
 		return err
 	}
 
+	exec.Command("launchctl", "unload", plistName).Run()
 	err = exec.Command("launchctl", "load", plistName).Run()
 	if err != nil {
 		return err

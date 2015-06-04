@@ -13,7 +13,7 @@ import (
 var (
 	fishShell = &shell{
 		configFileName: filepath.Join(os.Getenv("HOME"), ".config", "fish", "config.fish"),
-		commentSigil:   "#",
+		commentSigil:   " #",
 		quote: func(value string) string {
 			r := strings.NewReplacer(
 				"\\", "\\\\",
