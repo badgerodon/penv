@@ -31,7 +31,7 @@ Here's its usage:
 ## Gotchas
 Windows requires at least Go 1.3.
 
-Different operating systems / shells aren't really compatible. I'm able to discern which environment variables I'm responsible for with shells (like bash) by using their config files, but I can't do that with Windows or OSX. All appends will get collapsed into sets, and unsets aren't just masking the value, they may actually remove it.
+Different operating systems / shells aren't really compatible. I'm able to discern which environment variables I'm responsible for with shells (like bash) by using their config files, but I can't do that with Windows. All appends will get collapsed into sets, and unsets aren't just masking the value, they may actually remove it.
 
 In other words this command works but it's dangerous. If you set your `PATH` don't be surprised when it clears all the previous values and you can't get them back.
 
