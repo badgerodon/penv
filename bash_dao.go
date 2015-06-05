@@ -53,6 +53,12 @@ type (
 )
 
 func init() {
+	// For nitrous store the settings in .bash_profile since autoparts overrides
+	// the settings
+	if _, err := os.Stat(filepath.Join(os.Getenv("HOME"), ".nitrousboxrc.sample")); err == nil {
+		bashShell.configFileName = filepath.Join(os.Getenv("HOME"), ".bash_profile")
+	}
+
 	RegisterDAO(1000, func() bool {
 		pid := os.Getpid()
 		for pid > 0 {
