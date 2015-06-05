@@ -39,7 +39,7 @@ func (sh *shell) decodeOp(ln string) (shellOp, error) {
 	if i < 0 {
 		return sop, fmt.Errorf("expected comment")
 	}
-	args := strings.Split(ln[i+1:], ":")
+	args := strings.Split(ln[i+len(sh.commentSigil):], ":")
 	if len(args) < 3 {
 		return sop, fmt.Errorf("expected 3 arguments")
 	}
