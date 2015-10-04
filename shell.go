@@ -102,6 +102,7 @@ func (sh *shell) Save(env *Environment) error {
 	err := func() error {
 		fi, err := os.Stat(inName)
 		if err != nil {
+			os.MkdirAll(filepath.Dir(inName), 0755)
 			ioutil.WriteFile(inName, []byte{}, 0755)
 			fi, err = os.Stat(inName)
 		}
