@@ -84,18 +84,27 @@ func (dao *DarwinDAO) Save(env *Environment) error {
 		return err
 	}
 
-	plistName := filepath.Join(os.Getenv("HOME"), "Library", "LaunchAgents", "penv.plist")
+	pListFolder := filepath.Join(os.Getenv("HOME"), "Library", "LaunchAgents")
+	_, err = os.Stat(pListFolder)
+	switch {
+	case os.IsNotExist(err):
+		if err = os.MkdirAll(pListFolder, 0777); err != nil {
+			return err
+		}
+	case err != nil:
+		return err
+	}
 
-	err = ioutil.WriteFile(plistName, []byte(darwinPlist), 0777)
+	pListName := filepath.Join(pListFolder, "penv.plist")
+
+	err = ioutil.WriteFile(pListName, []byte(darwinPlist), 0777)
 	if err != nil {
 		return err
 	}
 
-	exec.Command("launchctl", "unload", plistName).Run()
-	err = exec.Command("launchctl", "load", plistName).Run()
-	if err != nil {
+	if err := exec.Command("launchctl", "unload", pListName).Run(); err != nil {
 		return err
 	}
 
-	return nil
+	return exec.Command("launchctl", "load", pListName).Run()
 }
